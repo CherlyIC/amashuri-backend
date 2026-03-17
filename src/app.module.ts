@@ -13,9 +13,11 @@ import { CompareModule } from './compare/compare.module';
 import { EnquiriesModule } from './enquiries/enquiries.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
 import { AdminModule } from './admin/admin.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, UsersModule, SchoolsModule, FeesModule, CombinationsModule, ResourcesModule, ReviewsModule, FavouritesModule, CompareModule, EnquiriesModule, RecommendationsModule, AdminModule],
+  imports: [AuthModule, UsersModule, SchoolsModule, FeesModule, CombinationsModule, ResourcesModule, ReviewsModule, FavouritesModule, CompareModule, EnquiriesModule, RecommendationsModule, AdminModule, PrismaModule],
   controllers: [AppController],
   providers: [AppService],
 })
