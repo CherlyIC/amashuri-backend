@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  SCHOOL_ADMIN
+  ADMIN
+}
+
+enum SchoolType {
+  PUBLIC
+  PRIVATE
+  GOVERNMENT_AIDED
+}
+
+enum GenderPolicy {
+  COED
+  BOYS_ONLY
+  GIRLS_ONLY
+}
+
+enum StudentType {
+  BOARDING
+  DAY
+}
+
+enum EnquiryStatus {
+  SENT
+  READ
+  REPLIED
+}
+
+enum SchoolStatus {
+  DRAFT
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+
+  reviews      Review[]
+  favourites   Favourite[]
+  enquiries    Enquiry[]
+  comparisons  Comparison[]
+  schoolAdmin  SchoolAdmin?
+}
+
+model School {
+  id           Int          @id @default(autoincrement())
+  name         String
+  district     String
+  province     String
+  schoolType   SchoolType
+  genderPolicy GenderPolicy
+  boarding     Boolean      @default(false)
+  email        String?
+  phone        String?
+  latitude     Float?
+  longitude    Float?
+  logoUrl      String?
+  description  String?
+  yearEstablished Int?
+  totalStudents   Int?
+  status       SchoolStatus @default(DRAFT)
+  isVerified   Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+
+  fees         Fee[]
+  combinations Combination[]
+  resources    SchoolResource?
+  reviews      Review[]
+  favourites   Favourite[]
+  enquiries    Enquiry[]
+  schoolAdmin  SchoolAdmin?
+}
+
+model Fee {
+  id           Int         @id @default(autoincrement())
+  schoolId     Int
+  level        String
+  studentType  StudentType
+  amount       Float
+  academicYear String
+
+  school       School      @relation(fields: [schoolId], references: [id])
+}
+
+model Combination {
+  id       Int    @id @default(autoincrement())
+  schoolId Int
+  name     String
+  subjects String
+
+  school   School @relation(fields: [schoolId], references: [id])
+}
+
+model SchoolResource {
+  id           Int     @id @default(autoincrement())
+  schoolId     Int     @unique
+  laboratory   Boolean @default(false)
+  library      Boolean @default(false)
+  computerRoom Boolean @default(false)
+  sportsField  Boolean @default(false)
+  boardingHouse Boolean @default(false)
+  chapel       Boolean @default(false)
+
+  school       School  @relation(fields: [schoolId], references: [id])
+}
+
+model Review {
+  id               Int      @id @default(autoincrement())
+  schoolId         Int
+  userId           Int
+  teachingRating   Int
+  facilitiesRating Int
+  adminRating      Int
+  overallRating    Int
+  comment          String?
+  createdAt        DateTime @default(now())
+
+  school           School   @relation(fields: [schoolId], references: [id])
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Favourite {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  schoolId Int
+  savedAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  school   School   @relation(fields: [schoolId], references: [id])
+}
+
+model Enquiry {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  schoolId    Int
+  message     String
+  senderEmail String
+  sentAt      DateTime      @default(now())
+  status      EnquiryStatus @default(SENT)
+
+  user        User          @relation(fields: [userId], references: [id])
+  school      School        @relation(fields: [schoolId], references: [id])
+}
+
+model Comparison {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  schoolIds Json
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model SchoolAdmin {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  schoolId   Int      @unique
+  assignedAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  school     School   @relation(fields: [schoolId], references: [id])
+}
