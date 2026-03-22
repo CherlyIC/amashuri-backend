@@ -1,14 +1,24 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
+  @IsString()
   name: string;
+
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(6)
   password: string;
 }
 
 export class LoginDto {
+  @IsEmail()
   email: string;
+
+  @IsString()
   password: string;
 }
 
@@ -26,6 +36,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(@Body() body: LoginDto) {
     return this.authService.login(
       body.email,

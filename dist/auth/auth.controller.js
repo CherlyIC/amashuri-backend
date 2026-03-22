@@ -15,17 +15,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = exports.LoginDto = exports.RegisterDto = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
+const class_validator_1 = require("class-validator");
 class RegisterDto {
     name;
     email;
     password;
 }
 exports.RegisterDto = RegisterDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(6),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "password", void 0);
 class LoginDto {
     email;
     password;
 }
 exports.LoginDto = LoginDto;
+__decorate([
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], LoginDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], LoginDto.prototype, "password", void 0);
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -48,6 +70,7 @@ __decorate([
 ], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [LoginDto]),
