@@ -44,7 +44,7 @@ enum SchoolStatus {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
+  id           String      @id @default(uuid())
   name         String
   email        String   @unique
   passwordHash String
@@ -59,7 +59,7 @@ model User {
 }
 
 model School {
-  id           Int          @id @default(autoincrement())
+  id           String         @id @default(uuid())
   name         String
   district     String
   province     String
@@ -88,8 +88,8 @@ model School {
 }
 
 model Fee {
-  id           Int         @id @default(autoincrement())
-  schoolId     Int
+  id           String         @id @default(uuid())
+  schoolId     String
   level        String
   studentType  StudentType
   amount       Float
@@ -99,8 +99,8 @@ model Fee {
 }
 
 model Combination {
-  id       Int    @id @default(autoincrement())
-  schoolId Int
+  id       String    @id @default(uuid())
+  schoolId String  @unique
   name     String
   subjects String
 
@@ -108,8 +108,8 @@ model Combination {
 }
 
 model SchoolResource {
-  id           Int     @id @default(autoincrement())
-  schoolId     Int     @unique
+  id           String      @id @default(uuid())
+  schoolId     String  @unique
   laboratory   Boolean @default(false)
   library      Boolean @default(false)
   computerRoom Boolean @default(false)
@@ -121,9 +121,9 @@ model SchoolResource {
 }
 
 model Review {
-  id               Int      @id @default(autoincrement())
-  schoolId         Int
-  userId           Int
+  id               String      @id @default(uuid())
+  schoolId         String
+  userId           String
   teachingRating   Int
   facilitiesRating Int
   adminRating      Int
@@ -136,9 +136,9 @@ model Review {
 }
 
 model Favourite {
-  id       Int      @id @default(autoincrement())
-  userId   Int
-  schoolId Int
+  id       String      @id @default(uuid())
+  userId   String
+  schoolId String
   savedAt  DateTime @default(now())
 
   user     User     @relation(fields: [userId], references: [id])
@@ -146,9 +146,9 @@ model Favourite {
 }
 
 model Enquiry {
-  id          Int           @id @default(autoincrement())
-  userId      Int
-  schoolId    Int
+  id          String           @id @default(uuid())
+  userId      String
+  schoolId    String
   message     String
   senderEmail String
   sentAt      DateTime      @default(now())
@@ -159,8 +159,8 @@ model Enquiry {
 }
 
 model Comparison {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id        String      @id @default(uuid())
+  userId    String
   schoolIds Json
   createdAt DateTime @default(now())
 
@@ -168,9 +168,9 @@ model Comparison {
 }
 
 model SchoolAdmin {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique
-  schoolId   Int      @unique
+  id         String      @id @default(uuid())
+  userId     String      @unique
+  schoolId   String      @unique
   assignedAt DateTime @default(now())
 
   user       User     @relation(fields: [userId], references: [id])
