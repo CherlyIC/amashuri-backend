@@ -14,6 +14,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { FavouritesModule } from './favourites/favourites.module';
 import { CompareModule } from './compare/compare.module';
 import { EnquiriesModule } from './enquiries/enquiries.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { EnquiriesModule } from './enquiries/enquiries.module';
     FavouritesModule,
     CompareModule,
     EnquiriesModule,
+    AdminModule,
   ],
   providers: [
     {
