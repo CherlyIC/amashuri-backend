@@ -4,6 +4,7 @@ import { CombinationsService } from './combinations.service';
 
 @Module({
   controllers: [CombinationsController],
-  providers: [CombinationsService]
+  providers: [CombinationsService],
+  exports: [CombinationsService],
 })
 export class CombinationsModule {}
