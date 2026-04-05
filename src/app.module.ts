@@ -11,6 +11,7 @@ import { ResourcesModule } from './resources/resources.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { ReviewsModule } from './reviews/reviews.module';
+import { FavouritesModule } from './favourites/favourites.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     CombinationsModule,
     ResourcesModule,
     ReviewsModule,
+    FavouritesModule,
   ],
   providers: [
     {
