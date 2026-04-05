@@ -13,6 +13,7 @@ import { RolesGuard } from './auth/roles.guard';
 import { ReviewsModule } from './reviews/reviews.module';
 import { FavouritesModule } from './favourites/favourites.module';
 import { CompareModule } from './compare/compare.module';
+import { EnquiriesModule } from './enquiries/enquiries.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CompareModule } from './compare/compare.module';
     ReviewsModule,
     FavouritesModule,
     CompareModule,
+    EnquiriesModule,
   ],
   providers: [
     {
