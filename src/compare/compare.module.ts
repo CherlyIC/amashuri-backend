@@ -4,6 +4,7 @@ import { CompareService } from './compare.service';
 
 @Module({
   controllers: [CompareController],
-  providers: [CompareService]
+  providers: [CompareService],
+  exports: [CompareService],
 })
 export class CompareModule {}
