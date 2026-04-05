@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SchoolsModule } from './schools/schools.module';
+import { FeesModule } from './fees/fees.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 
@@ -17,6 +18,7 @@ import { RolesGuard } from './auth/roles.guard';
     AuthModule,
     UsersModule,
     SchoolsModule,
+    FeesModule,
   ],
   providers: [
     {
