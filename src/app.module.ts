@@ -10,6 +10,7 @@ import { CombinationsModule } from './combinations/combinations.module';
 import { ResourcesModule } from './resources/resources.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RolesGuard } from './auth/roles.guard';
     FeesModule,
     CombinationsModule,
     ResourcesModule,
+    ReviewsModule,
   ],
   providers: [
     {
