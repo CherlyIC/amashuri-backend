@@ -100,7 +100,7 @@ model Fee {
 
 model Combination {
   id       String    @id @default(uuid())
-  schoolId String  @unique
+  schoolId String  
   name     String
   subjects String
 
