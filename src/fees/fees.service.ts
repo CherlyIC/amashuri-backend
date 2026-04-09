@@ -8,23 +8,29 @@ export class FeesService {
 
   
   async create(createFeeDto: CreateFeeDto) {
-    const school = await this.prisma.school.findUnique({
-      where: { id: createFeeDto.schoolId },
-    });
+  const school = await this.prisma.school.findUnique({
+    where: { id: createFeeDto.schoolId },
+  });
 
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
-
-    const fee = await this.prisma.fee.create({
-      data: createFeeDto,
-    });
-
-    return {
-      message: 'Fee record created successfully',
-      fee,
-    };
+  if (!school) {
+    throw new NotFoundException('School not found');
   }
+
+  const fee = await this.prisma.fee.create({
+    data: {
+      schoolId: createFeeDto.schoolId!,
+      level: createFeeDto.level,
+      studentType: createFeeDto.studentType,
+      amount: createFeeDto.amount,
+      academicYear: createFeeDto.academicYear,
+    },
+  });
+
+  return {
+    message: 'Fee record created successfully',
+    fee,
+  };
+}
   async findBySchool(schoolId: string) {
     const school = await this.prisma.school.findUnique({
       where: { id: schoolId },

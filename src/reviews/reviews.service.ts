@@ -11,35 +11,40 @@ export class ReviewsService {
   constructor(private prisma: PrismaService) {}
 
   // Create a review
-  async create(userId: string, createReviewDto: CreateReviewDto) {
-    const school = await this.prisma.school.findUnique({
-      where: { id: createReviewDto.schoolId },
-    });
+ async create(userId: string, createReviewDto: CreateReviewDto) {
+  const school = await this.prisma.school.findUnique({
+    where: { id: createReviewDto.schoolId },
+  });
 
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
+  if (!school) {
+    throw new NotFoundException('School not found');
+  }
 
-    const review = await this.prisma.review.create({
-      data: {
-        ...createReviewDto,
-        userId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
+  const review = await this.prisma.review.create({
+    data: {
+      schoolId: createReviewDto.schoolId!,
+      userId,
+      teachingRating: createReviewDto.teachingRating,
+      facilitiesRating: createReviewDto.facilitiesRating,
+      adminRating: createReviewDto.adminRating,
+      overallRating: createReviewDto.overallRating,
+      comment: createReviewDto.comment,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-    });
+    },
+  });
 
-    return {
-      message: 'Review submitted successfully',
-      review,
-    };
-  }
+  return {
+    message: 'Review submitted successfully',
+    review,
+  };
+}
 
   // Get all reviews for a school
   async findBySchool(schoolId: string) {

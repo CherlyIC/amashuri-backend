@@ -16,7 +16,6 @@ import { Public } from '../auth/public.decorator';
 export class FeesController {
   constructor(private feesService: FeesService) {}
 
-  // POST /schools/:id/fees — admin or school admin
   @Post(':id/fees')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   create(
@@ -27,15 +26,13 @@ export class FeesController {
     return this.feesService.create(createFeeDto);
   }
 
-  // GET /schools/:id/fees — public
   @Get(':id/fees')
   @Public()
   findBySchool(@Param('id') schoolId: string) {
     return this.feesService.findBySchool(schoolId);
   }
 
-  // PUT /fees/:id — admin or school admin
-  @Put('fees/:id')
+  @Put('fee/:id')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   update(
     @Param('id') id: string,
@@ -44,8 +41,7 @@ export class FeesController {
     return this.feesService.update(id, data);
   }
 
-  // DELETE /fees/:id — admin only
-  @Delete('fees/:id')
+  @Delete('fee/:id')
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.feesService.remove(id);

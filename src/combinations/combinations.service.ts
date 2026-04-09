@@ -7,23 +7,27 @@ export class CombinationsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCombinationDto: CreateCombinationDto) {
-    const school = await this.prisma.school.findUnique({
-      where: { id: createCombinationDto.schoolId },
-    });
+  const school = await this.prisma.school.findUnique({
+    where: { id: createCombinationDto.schoolId },
+  });
 
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
-
-    const combination = await this.prisma.combination.create({
-      data: createCombinationDto,
-    });
-
-    return {
-      message: 'Combination added successfully',
-      combination,
-    };
+  if (!school) {
+    throw new NotFoundException('School not found');
   }
+
+  const combination = await this.prisma.combination.create({
+    data: {
+      schoolId: createCombinationDto.schoolId!,
+      name: createCombinationDto.name,
+      subjects: createCombinationDto.subjects,
+    },
+  });
+
+  return {
+    message: 'Combination added successfully',
+    combination,
+  };
+}
   async findBySchool(schoolId: string) {
     const school = await this.prisma.school.findUnique({
       where: { id: schoolId },

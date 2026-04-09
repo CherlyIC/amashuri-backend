@@ -1,12 +1,13 @@
-import { IsString } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class CreateCombinationDto {
   @IsString()
-  schoolId: string;
+  @IsOptional()
+  schoolId?: string;
 
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  subjects: string;
+  subjects!: string;
 }
