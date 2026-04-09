@@ -166,18 +166,25 @@ export class SchoolsService {
   }
 
   async remove(id: string) {
-    const school = await this.prisma.school.findUnique({ where: { id } });
+  const school = await this.prisma.school.findUnique({ where: { id } });
 
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
-
-    await this.prisma.school.delete({ where: { id } });
-
-    return {
-      message: 'School deleted successfully',
-    };
+  if (!school) {
+    throw new NotFoundException('School not found');
   }
+
+  await this.prisma.fee.deleteMany({ where: { schoolId: id } });
+  await this.prisma.combination.deleteMany({ where: { schoolId: id } });
+  await this.prisma.schoolResource.deleteMany({ where: { schoolId: id } });
+  await this.prisma.review.deleteMany({ where: { schoolId: id } });
+  await this.prisma.favourite.deleteMany({ where: { schoolId: id } });
+  await this.prisma.enquiry.deleteMany({ where: { schoolId: id } });
+
+  await this.prisma.school.delete({ where: { id } });
+
+  return {
+    message: 'School deleted successfully',
+  };
+}
 
   async submitForVerification(id: string) {
     const school = await this.prisma.school.findUnique({ where: { id } });
