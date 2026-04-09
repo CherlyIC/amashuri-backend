@@ -2,7 +2,8 @@ import { IsString, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreateResourceDto {
   @IsString()
-  schoolId: string;
+  @IsOptional()
+  schoolId?: string;
 
   @IsBoolean()
   @IsOptional()

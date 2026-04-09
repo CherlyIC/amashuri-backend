@@ -3,31 +3,32 @@ import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
   @IsString()
-  schoolId: string;
+  @IsOptional()
+  schoolId?: string;
 
   @IsNumber()
   @Min(1)
   @Max(5)
   @Type(() => Number)
-  teachingRating: number;
+  teachingRating!: number;
 
   @IsNumber()
   @Min(1)
   @Max(5)
   @Type(() => Number)
-  facilitiesRating: number;
+  facilitiesRating!: number;
 
   @IsNumber()
   @Min(1)
   @Max(5)
   @Type(() => Number)
-  adminRating: number;
+  adminRating!: number;
 
   @IsNumber()
   @Min(1)
   @Max(5)
   @Type(() => Number)
-  overallRating: number;
+  overallRating!: number;
 
   @IsString()
   @IsOptional()

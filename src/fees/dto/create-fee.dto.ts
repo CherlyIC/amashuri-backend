@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsNumber } from 'class-validator';
+import { IsString, IsEnum, IsNumber, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum StudentType {
@@ -8,18 +8,19 @@ export enum StudentType {
 
 export class CreateFeeDto {
   @IsString()
-  schoolId: string;
+  @IsOptional()
+  schoolId?: string;
 
   @IsString()
-  level: string;
+  level!: string;
 
   @IsEnum(StudentType)
-  studentType: StudentType;
+  studentType!: StudentType;
 
   @IsNumber()
   @Type(() => Number)
-  amount: number;
+  amount!: number;
 
   @IsString()
-  academicYear: string;
+  academicYear!: string;
 }

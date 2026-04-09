@@ -11,32 +11,41 @@ export class ResourcesService {
   constructor(private prisma: PrismaService) {}
   
   async create(createResourceDto: CreateResourceDto) {
-    const school = await this.prisma.school.findUnique({
-      where: { id: createResourceDto.schoolId },
-    });
+  const school = await this.prisma.school.findUnique({
+    where: { id: createResourceDto.schoolId },
+  });
 
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
-    const existing = await this.prisma.schoolResource.findUnique({
-      where: { schoolId: createResourceDto.schoolId },
-    });
-
-    if (existing) {
-      throw new ConflictException(
-        'Resources already exist for this school. Use update instead.',
-      );
-    }
-
-    const resource = await this.prisma.schoolResource.create({
-      data: createResourceDto,
-    });
-
-    return {
-      message: 'School resources added successfully',
-      resource,
-    };
+  if (!school) {
+    throw new NotFoundException('School not found');
   }
+
+  const existing = await this.prisma.schoolResource.findUnique({
+    where: { schoolId: createResourceDto.schoolId },
+  });
+
+  if (existing) {
+    throw new ConflictException(
+      'Resources already exist for this school. Use update instead.',
+    );
+  }
+
+  const resource = await this.prisma.schoolResource.create({
+    data: {
+      schoolId: createResourceDto.schoolId!,
+      laboratory: createResourceDto.laboratory ?? false,
+      library: createResourceDto.library ?? false,
+      computerRoom: createResourceDto.computerRoom ?? false,
+      sportsField: createResourceDto.sportsField ?? false,
+      boardingHouse: createResourceDto.boardingHouse ?? false,
+      chapel: createResourceDto.chapel ?? false,
+    },
+  });
+
+  return {
+    message: 'School resources added successfully',
+    resource,
+  };
+}
 
   async findBySchool(schoolId: string) {
     const school = await this.prisma.school.findUnique({

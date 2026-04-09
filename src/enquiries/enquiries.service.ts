@@ -102,33 +102,29 @@ export class EnquiriesService {
   }
 
   async findBySchool(schoolId: string) {
-    const school = await this.prisma.school.findUnique({
-      where: { id: schoolId },
-    });
+  console.log('Looking for enquiries with schoolId:', schoolId);
+  
+  const school = await this.prisma.school.findUnique({
+    where: { id: schoolId },
+  });
 
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
+  console.log('School found:', school?.name);
 
-    const enquiries = await this.prisma.enquiry.findMany({
-      where: { schoolId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: { sentAt: 'desc' },
-    });
-
-    return {
-      data: enquiries,
-      total: enquiries.length,
-    };
+  if (!school) {
+    throw new NotFoundException('School not found');
   }
+
+  const enquiries = await this.prisma.enquiry.findMany({
+    where: { schoolId },
+  });
+
+  console.log('Enquiries found:', enquiries.length);
+
+  return {
+    data: enquiries,
+    total: enquiries.length,
+  };
+}
 
   async findAll() {
     const enquiries = await this.prisma.enquiry.findMany({
@@ -150,6 +146,7 @@ export class EnquiriesService {
       },
       orderBy: { sentAt: 'desc' },
     });
+     console.log('Total enquiries found:', enquiries.length);
 
     return {
       data: enquiries,
