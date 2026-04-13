@@ -1,12 +1,10 @@
-import { IsString, IsEmail } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class CreateEnquiryDto {
   @IsString()
-  schoolId: string;
+  @IsOptional()
+  schoolId?: string;
 
   @IsString()
   message: string;
-
-  @IsEmail()
-  senderEmail: string;
 }
