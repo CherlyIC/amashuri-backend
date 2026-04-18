@@ -142,7 +142,6 @@ async create(userId: string, createEnquiryDto: CreateEnquiryDto) {
     where: { schoolId },
   });
 
-  console.log('Enquiries found:', enquiries.length);
 
   return {
     data: enquiries,
@@ -170,7 +169,7 @@ async create(userId: string, createEnquiryDto: CreateEnquiryDto) {
       },
       orderBy: { sentAt: 'desc' },
     });
-     console.log('Total enquiries found:', enquiries.length);
+     
 
     return {
       data: enquiries,
