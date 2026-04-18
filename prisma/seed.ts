@@ -6,9 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting seeding...');
 
-  // ─── ADMIN ───────────────────────────────────────────────────────────────
   const existingAdmin = await prisma.user.findUnique({
-    where: { email: 'admin@amashuri.rw' },
+    where: { email: 'amashuridirectory@gmail.com' },
   });
 
   if (!existingAdmin) {
@@ -16,7 +15,7 @@ async function main() {
     await prisma.user.create({
       data: {
         name: 'Amashuri Admin',
-        email: 'admin@amashuri.rw',
+        email: 'amashuridirectory@gmail.com',
         passwordHash,
         role: 'ADMIN',
       },
@@ -26,7 +25,7 @@ async function main() {
     console.log('Admin already exists!');
   }
 
-  // ─── SCHOOLS ─────────────────────────────────────────────────────────────
+  //  SCHOOLS 
  const schools = [
   // ─── KIGALI PROVINCE ───────────────────────────────────────────
   {
