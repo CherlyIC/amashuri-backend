@@ -16,12 +16,26 @@ import { CompareModule } from './compare/compare.module';
 import { EnquiriesModule } from './enquiries/enquiries.module';
 import { AdminModule } from './admin/admin.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { SearchModule } from './search/search.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
-  imports: [
+   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,
+        limit: 10,
+      },
+      {
+        name: 'long',
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -35,6 +49,7 @@ import { RecommendationsModule } from './recommendations/recommendations.module'
     EnquiriesModule,
     AdminModule,
     RecommendationsModule,
+    SearchModule,
   ],
   providers: [
     {
@@ -44,6 +59,10 @@ import { RecommendationsModule } from './recommendations/recommendations.module'
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+     {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
