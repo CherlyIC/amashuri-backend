@@ -1,98 +1,340 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Amashuri.rw — Rwanda's Secondary School Directory
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![Amashuri.rw](https://img.shields.io/badge/Amashuri.rw-Rwanda's%20School%20Directory-1F4E79)
+![NestJS](https://img.shields.io/badge/NestJS-11-red)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Prisma](https://img.shields.io/badge/Prisma-5-green)
+![Jest](https://img.shields.io/badge/Tests-11%20Passing-brightgreen)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
+Amashuri.rw is a comprehensive digital platform designed to 
+revolutionize access to secondary school information across Rwanda. 
+The system enables parents, students, and educators to make informed 
+educational decisions through accessible, accurate, and comparable 
+school data.
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Technology Stack
 
-## Project setup
+### Backend
+| Technology | Version | Purpose |
+|---|---|---|
+| Node.js | v22 | Runtime environment |
+| NestJS | 11 | Backend framework |
+| PostgreSQL | 16 | Relational database |
+| Prisma | 5 | ORM |
+| JWT | - | Authentication |
+| bcrypt | - | Password hashing |
+| Nodemailer | - | Email service |
+| Groq SDK | - | AI search (LLaMA 3.3 70B) |
+| Helmet | - | Security headers |
+| Throttler | - | Rate limiting |
 
+### Frontend (Coming Soon)
+| Technology | Purpose |
+|---|---|
+| Next.js 14 | Frontend framework |
+| Tailwind CSS | Styling |
+| Redux Toolkit | State management |
+| Leaflet.js | Interactive maps |
+| Chart.js | Comparison charts |
+
+---
+
+## Features
+
+-  **School Directory** — Comprehensive database of secondary schools across all provinces of Rwanda
+-  **AI-Powered Search** — Natural language search using LLaMA 3.3 70B via Groq API with 4 intent types
+-  **Advanced Filtering** — Filter by district, province, school type, gender policy, fees, combinations and resources
+-  **School Comparison** — Compare up to 5 schools side by side with full profile data
+-  **Reviews and Ratings** — Community driven school reviews with multi-dimensional ratings
+-  **Favourites** — Save and manage favourite schools
+-  **Enquiry System** — Contact schools directly with automatic email delivery
+-  **Geolocation** — Find schools near your location using Haversine formula
+-  **Recommendations** — Personalized school recommendations based on user history
+-  **Role-Based Access Control** — USER, SCHOOL_ADMIN, and ADMIN roles
+- **Security** — Helmet, CORS, Rate Limiting, JWT authentication
+
+---
+
+## AI Search — How It Works
+
+The AI search uses **Groq API with LLaMA 3.3 70B Versatile** model to understand natural language queries.
+
+### Query Flow
+User types a query
+↓
+Controller receives it
+↓
+Service checks if query is empty or too short
+↓
+Single Groq call analyzes the query and returns:
+
+intent (what the user wants)
+params (extracted filters)
+pendingMessage (initial response)
+↓
+Route to the right handler based on intent
+↓
+Return results + friendly message
+
+### 4 Intent Types
+
+| Intent | Example Query | What Happens |
+|---|---|---|
+| `search` | "girls boarding school in Kigali" | Extract filters → query DB → return schools |
+| `recommendation` | "best school in Rwanda" | Fetch top rated schools → return top 10 |
+| `general_education` | "what is the difference between PCM and MCB" | Groq answers from its own knowledge |
+| `out_of_scope` | "what is the weather today" | Politely decline and give example queries |
+
+### Fallback System
+If Groq API fails, the system automatically falls back to basic keyword search in the database ensuring users never see a broken experience.
+
+---
+
+## Prerequisites
+
+Make sure you have the following installed:
+- Node.js v18 or higher
+- PostgreSQL 16
+- npm
+
+---
+
+## Installation
+
+### 1. Clone the Repository
 ```bash
-$ npm install
+git clone https://github.com/CherlyIC/amashuri-backend.git
+cd amashuri-backend
 ```
 
-## Compile and run the project
-
+### 2. Install Dependencies
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Set Up Environment Variables
+Create a `.env` file in the root directory:
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/amashuri_db?schema=public"
+JWT_SECRET=your-jwt-secret-key
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-gmail-app-password
+GROQ_API_KEY=your-groq-api-key
 
+### 4. Set Up the Database
 ```bash
-# unit tests
-$ npm run test
+# Run migrations
+npx prisma migrate dev
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Seed the database with initial data
+npm run seed
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 5. Run the Application
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Development mode
+npm run start:dev
+
+# Production mode
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The API will be available at `http://localhost:3000`
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## Running Tests
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+# Run all tests
+npm run test
 
-## Support
+# Run tests with coverage
+npm run test:cov
+```
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## API Endpoints Summary
 
-## Stay in touch
+###  Authentication
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | /auth/register | Register new user | Public |
+| POST | /auth/login | Login user | Public |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+###  Schools
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /schools | Get all schools with filters | Public |
+| GET | /schools/:id | Get one school full profile | Public |
+| GET | /schools/nearby | Get nearby schools | Public |
+| POST | /schools | Create school | Admin |
+| PUT | /schools/:id | Update school | Admin/School Admin |
+| DELETE | /schools/:id | Delete school | Admin |
+| PUT | /schools/:id/submit | Submit for verification | Admin/School Admin |
 
-## License
+###  Fees
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /schools/:id/fees | Get school fees | Public |
+| POST | /schools/:id/fees | Add fee | Admin/School Admin |
+| PUT | /schools/fee/:id | Update fee | Admin/School Admin |
+| DELETE | /schools/fee/:id | Delete fee | Admin |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+###  Combinations
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /schools/:id/combinations | Get combinations | Public |
+| POST | /schools/:id/combinations | Add combination | Admin/School Admin |
+| DELETE | /schools/combinations/:id | Delete combination | Admin |
+
+###  School Resources
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /schools/:id/resources | Get resources | Public |
+| POST | /schools/:id/resources | Add resources | Admin/School Admin |
+| PUT | /schools/resources/:id | Update resources | Admin/School Admin |
+
+###  Reviews
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /schools/:id/reviews | Get reviews | Public |
+| POST | /schools/:id/reviews | Create review | User |
+| PUT | /schools/reviews/:id | Update review | User |
+| DELETE | /schools/reviews/:id | Delete review | User/Admin |
+
+###  Favourites
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /users/favourites | Get my favourites | User |
+| POST | /users/favourites/:schoolId | Save to favourites | User |
+| DELETE | /users/favourites/:schoolId | Remove from favourites | User |
+
+### Compare
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | /compare | Compare schools | User |
+| GET | /compare/history | Get comparison history | User |
+
+###  Enquiries
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | /enquiries | Send enquiry | User |
+| GET | /enquiries/my | Get my enquiries | User |
+| GET | /enquiries/school/:id | Get school enquiries | School Admin |
+| GET | /enquiries | Get all enquiries | Admin |
+
+### Users
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /users/me | Get my profile | User |
+| PUT | /users/me | Update my profile | User |
+| DELETE | /users/me | Delete my account | User |
+
+### Admin
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /admin/stats | Platform statistics | Admin |
+| GET | /admin/users | Get all users | Admin |
+| PUT | /admin/users/:id/role | Change user role | Admin |
+| GET | /admin/schools/pending | Get pending schools | Admin |
+| PUT | /admin/schools/:id/verify | Verify school | Admin |
+| POST | /admin/schools/assign-admin | Assign school admin | Admin |
+
+### AI Search
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /search/ai?q= | AI natural language search | Public |
+
+### Recommendations
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | /recommendations | Get my recommendations | User |
+| GET | /recommendations/schools/:id/similar | Get similar schools | Public |
+
+---
+
+## Database Schema
+
+The system uses **10 database tables**:
+
+| Table | Description |
+|---|---|
+| User | Platform users with roles |
+| School | Secondary school profiles |
+| Fee | School fee structures |
+| Combination | Subject combinations |
+| SchoolResource | School facilities |
+| Review | User reviews and ratings |
+| Favourite | User saved schools |
+| Enquiry | School enquiry messages |
+| Comparison | Comparison history |
+| SchoolAdmin | School admin assignments |
+
+---
+
+## Project Structure
+src/
+├── admin/              ← Admin dashboard module
+├── auth/               ← Authentication and authorization
+│   ├── jwt.strategy.ts
+│   ├── jwt-auth.guard.ts
+│   ├── roles.guard.ts
+│   ├── roles.decorator.ts
+│   └── public.decorator.ts
+├── combinations/       ← Subject combinations module
+├── compare/            ← School comparison module
+├── enquiries/          ← Enquiry and email module
+├── favourites/         ← Favourites module
+├── fees/               ← School fees module
+├── prisma/             ← Database service
+├── recommendations/    ← Recommendations module
+├── resources/          ← School resources module
+├── reviews/            ← Reviews and ratings module
+├── schools/            ← Schools module
+├── search/             ← AI Search module (Groq)
+└── users/              ← User profile module
+---
+
+## Security Features
+
+| Feature | Implementation |
+|---|---|
+| Password Hashing | bcrypt with salt rounds 10 |
+| Authentication | JWT tokens with 7 day expiry |
+| Authorization | Role-based access control (RBAC) |
+| Rate Limiting | 10 requests/second, 100 requests/minute |
+| Security Headers | Helmet middleware |
+| CORS | Configured for frontend domains |
+| Input Validation | class-validator on all DTOs |
+| Environment Variables | Secured in .env file |
+
+---
+
+## Seeded Data
+
+After running `npm run seed` the database will contain:
+- **1 Admin account** 
+- **24 verified schools** across all 5 provinces of Rwanda
+- Each school has combinations, resources and fees
+
+---
+
+
+
+## Groq API
+
+This project uses **Groq API** with **LLaMA 3.3 70B Versatile** model for AI search.
+
+### Free Tier Limits
+- 30 requests per minute
+- 14,400 requests per day
+- 6,000 tokens per minute
+
+Get your free API key at: **console.groq.com**
+
+---
+
