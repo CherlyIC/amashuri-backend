@@ -107,6 +107,29 @@ export class ReviewsService {
     };
   }
 
+  // Get all reviews by a user
+  async findByUser(userId: string) {
+    const reviews = await this.prisma.review.findMany({
+      where: { userId },
+      include: {
+        school: {
+          select: {
+            id: true,
+            name: true,
+            district: true,
+            logoUrl: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      data: reviews,
+      total: reviews.length,
+    };
+  }
+
   // Update a review
   async update(id: string, userId: string, data: Partial<CreateReviewDto>) {
     const review = await this.prisma.review.findUnique({ where: { id } });

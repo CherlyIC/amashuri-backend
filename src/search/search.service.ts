@@ -13,11 +13,40 @@ export class SearchService {
   }
 
 
+  private extractJson(responseText: string): any {
+    const cleaned = responseText.trim();
+
+    // Try to find JSON object between first { and last }
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      const jsonStr = cleaned.substring(firstBrace, lastBrace + 1);
+      try {
+        return JSON.parse(jsonStr);
+      } catch (e) {
+        // Try removing common markdown artifacts
+        const stripped = jsonStr
+          .replace(/```json\s*/gi, '')
+          .replace(/```\s*/g, '')
+          .replace(/\n/g, '')
+          .replace(/\r/g, '');
+        try {
+          return JSON.parse(stripped);
+        } catch (e2) {
+          throw new Error('Failed to extract valid JSON');
+        }
+      }
+    }
+
+    throw new Error('No JSON object found in response');
+  }
+
   private async analyzeQuery(query: string): Promise<{
     intent: 'search' | 'recommendation' | 'general_education' | 'out_of_scope';
     params: any;
-    pendingMessage: string; 
-    generalAnswer?: string; 
+    pendingMessage: string;
+    generalAnswer?: string;
   }> {
     const completion = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -37,12 +66,14 @@ Your job is to analyze the user's query and return a single JSON object with the
 2. "params" — ONLY if intent is "search", extract these filters (all optional):
    - genderPolicy: "COED", "GIRLS_ONLY", or "BOYS_ONLY"
    - boarding: true or false
-   - district: specific district name like "Gasabo", "Nyarugenge", "Kicukiro", "Musanze" etc. NEVER set this to a province name.
+   - district: specific district name like "Gasabo", "Nyarugenge", "Kicukiro", "Musanze", "Huye", "Ruhango" etc. NEVER set this to a province name.
    - province: "Kigali", "Southern", "Northern", "Eastern", or "Western". Note: "Kigali" is a province containing Gasabo, Nyarugenge and Kicukiro districts.
    - schoolType: "PUBLIC", "PRIVATE", or "GOVERNMENT_AIDED"
+   - minFee: minimum fee in RWF as a number
    - maxFee: maximum fee in RWF as a number
    - combination: "PCM", "MCB", "HEG", "MEG", "MPC" etc
    - facilities: array from ["laboratory", "library", "computerRoom", "sportsField", "boardingHouse", "chapel"]
+   - limit: number of schools user asked for (default: 5 if not specified). If user says "show me 2 schools", set limit: 2
    - search: general keyword if nothing specific matches
    IMPORTANT: Never set district and province to the same value. If user says "Kigali" only set province not district.
    If intent is NOT "search", set params to {}
@@ -67,17 +98,12 @@ Return ONLY a raw JSON object. No explanation, no markdown, no backticks.`,
     });
 
     const responseText = completion.choices[0]?.message?.content?.trim() || '{}';
-    console.log('Groq single response:', responseText);
+    console.log('Groq response:', responseText);
 
     try {
-      const cleaned = responseText
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      return JSON.parse(cleaned);
+      return this.extractJson(responseText);
     } catch (e) {
       console.error('Failed to parse Groq response:', e);
-     
       return {
         intent: 'search',
         params: {},
@@ -127,7 +153,7 @@ Write a short friendly response.`,
   }
 
   
-  private async handleRecommendationQuery(query: string, pendingMessage: string) {
+  private async handleRecommendationQuery(query: string, pendingMessage: string, limit: number = 5) {
     const schools = await this.prisma.school.findMany({
       where: { isVerified: true, status: 'VERIFIED' },
       include: {
@@ -151,7 +177,7 @@ Write a short friendly response.`,
         };
       })
       .sort((a, b) => b.avgRating - a.avgRating)
-      .slice(0, 10);
+      .slice(0, limit);
 
     const message = await this.generateFinalMessage(query, topSchools.length, topSchools);
 
@@ -211,7 +237,7 @@ Write a short friendly response.`,
       }
 
       if (intent === 'recommendation') {
-        return this.handleRecommendationQuery(query, pendingMessage);
+        return this.handleRecommendationQuery(query, pendingMessage, params.limit);
       }
 
       const where: any = {
@@ -253,14 +279,18 @@ Write a short friendly response.`,
           where.resources = { is: facilityFilter };
         }
       }
-      if (params.maxFee) {
+      if (params.maxFee || params.minFee) {
+        const feeFilter: any = {};
+        if (params.maxFee) feeFilter.lte = params.maxFee;
+        if (params.minFee) feeFilter.gte = params.minFee;
         where.fees = {
-          some: { amount: { lte: params.maxFee } },
+          some: feeFilter,
         };
       }
 
       const schools = await this.prisma.school.findMany({
         where,
+        take: params.limit || 5,
         include: {
           combinations: true,
           resources: true,

@@ -34,6 +34,12 @@ export class ReviewsController {
     return this.reviewsService.findBySchool(schoolId);
   }
 
+  // GET /schools/reviews/my — logged in users only
+  @Get('reviews/my')
+  findMyReviews(@Request() req: any) {
+    return this.reviewsService.findByUser(req.user.id);
+  }
+
   // PUT /reviews/:id — logged in users only
   @Put('reviews/:id')
   update(
