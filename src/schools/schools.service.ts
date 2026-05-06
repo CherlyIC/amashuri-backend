@@ -3,12 +3,23 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { FilterSchoolDto } from './dto/filter-school.dto';
+import { Role } from '../auth/roles.decorator';
 
 @Injectable()
 export class SchoolsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createSchoolDto: CreateSchoolDto) {
+  async create(createSchoolDto: CreateSchoolDto, user?: any) {
+    // If user is SCHOOL_ADMIN, check they don't already have a school
+    if (user && user.role === Role.SCHOOL_ADMIN) {
+      const existingAdmin = await this.prisma.schoolAdmin.findUnique({
+        where: { userId: user.id },
+      });
+      if (existingAdmin) {
+        throw new ForbiddenException('You already have a school assigned');
+      }
+    }
+
     const school = await this.prisma.school.create({
       data: {
         ...createSchoolDto,
@@ -16,6 +27,17 @@ export class SchoolsService {
         isVerified: false,
       },
     });
+
+    // If user is SCHOOL_ADMIN, auto-assign them to the created school
+    if (user && user.role === Role.SCHOOL_ADMIN) {
+      await this.prisma.schoolAdmin.create({
+        data: {
+          userId: user.id,
+          schoolId: school.id,
+        },
+      });
+    }
+
     return {
       message: 'School created successfully',
       school,
@@ -147,11 +169,21 @@ export class SchoolsService {
     };
   }
 
-  async update(id: string, updateSchoolDto: UpdateSchoolDto) {
+  async update(id: string, updateSchoolDto: UpdateSchoolDto, userId?: string, userRole?: string) {
     const school = await this.prisma.school.findUnique({ where: { id } });
 
     if (!school) {
       throw new NotFoundException('School not found');
+    }
+
+    // If user is SCHOOL_ADMIN, verify they own this school
+    if (userId && userRole === Role.SCHOOL_ADMIN) {
+      const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+        where: { userId, schoolId: id },
+      });
+      if (!schoolAdmin) {
+        throw new NotFoundException('School not found');
+      }
     }
 
     const updated = await this.prisma.school.update({
@@ -186,11 +218,21 @@ export class SchoolsService {
   };
 }
 
-  async submitForVerification(id: string) {
+  async submitForVerification(id: string, userId?: string, userRole?: string) {
     const school = await this.prisma.school.findUnique({ where: { id } });
 
     if (!school) {
       throw new NotFoundException('School not found');
+    }
+
+    // If user is SCHOOL_ADMIN, verify they own this school
+    if (userId && userRole === Role.SCHOOL_ADMIN) {
+      const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+        where: { userId, schoolId: id },
+      });
+      if (!schoolAdmin) {
+        throw new NotFoundException('School not found');
+      }
     }
 
     const updated = await this.prisma.school.update({

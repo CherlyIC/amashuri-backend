@@ -1,107 +1,105 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
+import { Role } from '../auth/roles.decorator';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EnquiriesService {
   constructor(private prisma: PrismaService) {}
 
-private async sendEmail(
-  to: string,
-  schoolName: string,
-  senderEmail: string,
-  senderName: string,
-  message: string,
-) {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  private async sendEmail(
+    to: string,
+    schoolName: string,
+    senderEmail: string,
+    senderName: string,
+    message: string,
+  ) {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
 
-  await transporter.sendMail({
-    from: `"Amashuri.rw" <${process.env.SMTP_USER}>`,
-    to,
-    replyTo: senderEmail,
-    subject: `New Enquiry from Amashuri.rw - ${schoolName}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #1F4E79; padding: 20px; text-align: center;">
-          <h1 style="color: white; margin: 0;">Amashuri.rw</h1>
-          <p style="color: #D6E4F0; margin: 5px 0;">Rwanda's Secondary School Directory</p>
-        </div>
-        <div style="padding: 30px; background-color: #f9f9f9;">
-          <h2 style="color: #1F4E79;">New Enquiry Received</h2>
-          <p>Dear <strong>${schoolName}</strong>,</p>
-          <p>You have received a new enquiry from a parent/student through Amashuri.rw platform.</p>
-          <div style="background-color: white; padding: 20px; border-left: 4px solid #1F4E79; margin: 20px 0;">
-            <p><strong>From:</strong> ${senderName} (${senderEmail})</p>
-            <p><strong>Message:</strong></p>
-            <p style="color: #555;">${message}</p>
+    await transporter.sendMail({
+      from: `"Amashuri.rw" <${process.env.SMTP_USER}>`,
+      to,
+      replyTo: senderEmail,
+      subject: `New Enquiry from Amashuri.rw - ${schoolName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin:0 auto;">
+          <div style="background-color: #1F4E79; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">Amashuri.rw</h1>
+            <p style="color: #D6E4F0; margin: 5px 0;">Rwanda's Secondary School Directory</p>
           </div>
-          <p>To reply to this enquiry simply reply to this email or contact the parent directly at: <a href="mailto:${senderEmail}">${senderEmail}</a></p>
-          <hr style="border: 1px solid #eee; margin: 20px 0;"/>
-          <p style="color: #888; font-size: 12px;">This email was sent through Amashuri.rw — Rwanda's Secondary School Directory.</p>
+          <div style="padding: 30px; background-color: #f9f9f9;">
+            <h2 style="color: #1F4E79;">New Enquiry Received</h2>
+            <p>Dear <strong>${schoolName}</strong>,</p>
+            <p>You have received a new enquiry from a parent/student through Amashuri.rw platform.</p>
+            <div style="background-color: white; padding: 20px; border-left: 4px solid #1F4E79; margin: 20px 0;">
+              <p><strong>From:</strong> ${senderName} (${senderEmail})</p>
+              <p><strong>Message:</strong></p>
+              <p style="color: #555;">${message}</p>
+            </div>
+            <p>To reply to this enquiry simply reply to this email or contact the parent directly at: <a href="mailto:${senderEmail}">${senderEmail}</a></p>
+            <hr style="border: 1px solid #eee; margin: 20px 0;"/>
+            <p style="color: #888; font-size: 12px;">This email was sent through Amashuri.rw — Rwanda's Secondary School Directory.</p>
+          </div>
         </div>
-      </div>
-    `,
-  });
-}
-
-async create(userId: string, createEnquiryDto: CreateEnquiryDto) {
-  const school = await this.prisma.school.findUnique({
-    where: { id: createEnquiryDto.schoolId },
-  });
-
-  if (!school) {
-    throw new NotFoundException('School not found');
+      `,
+    });
   }
 
-  // Get the user's email automatically from the database
-  const user = await this.prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true, name: true },
-  });
+  async create(userId: string, createEnquiryDto: CreateEnquiryDto) {
+    const school = await this.prisma.school.findUnique({
+      where: { id: createEnquiryDto.schoolId },
+    });
 
-  if (!user) {
-    throw new NotFoundException('User not found');
-  }
-
-  // Save enquiry to database using user's real email
-  const enquiry = await this.prisma.enquiry.create({
-    data: {
-      userId,
-      schoolId: createEnquiryDto.schoolId!,
-      message: createEnquiryDto.message,
-      senderEmail: user.email, // automatically use logged in user's email
-      status: 'SENT',
-    },
-  });
-
-  // Send email to school if they have an email
-  if (school.email) {
-    try {
-      await this.sendEmail(
-        school.email,
-        school.name,
-        user.email,
-        user.name,
-        createEnquiryDto.message,
-      );
-    } catch (error) {
-      console.error('Email sending failed:', error);
+    if (!school) {
+      throw new NotFoundException('School not found');
     }
-  }
 
-  return {
-    message: 'Enquiry sent successfully',
-    enquiry,
-  };
-}
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const enquiry = await this.prisma.enquiry.create({
+      data: {
+        userId,
+        schoolId: createEnquiryDto.schoolId!,
+        message: createEnquiryDto.message,
+        senderEmail: user.email,
+        status: 'SENT',
+      },
+    });
+
+    if (school.email) {
+      try {
+        await this.sendEmail(
+          school.email,
+          school.name,
+          user.email,
+          user.name,
+          createEnquiryDto.message,
+        );
+      } catch (error) {
+        console.error('Email sending failed:', error);
+      }
+    }
+
+    return {
+      message: 'Enquiry sent successfully',
+      enquiry,
+    };
+  }
 
   async findByUser(userId: string) {
     const enquiries = await this.prisma.enquiry.findMany({
@@ -125,51 +123,82 @@ async create(userId: string, createEnquiryDto: CreateEnquiryDto) {
     };
   }
 
-  async findBySchool(schoolId: string) {
-  console.log('Looking for enquiries with schoolId:', schoolId);
-  
-  const school = await this.prisma.school.findUnique({
-    where: { id: schoolId },
-  });
+  async findBySchool(schoolId: string, user?: any) {
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
 
-  console.log('School found:', school?.name);
+    if (!school) {
+      throw new NotFoundException('School not found');
+    }
 
-  if (!school) {
-    throw new NotFoundException('School not found');
+    if (user && user.role === Role.SCHOOL_ADMIN) {
+      const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+        where: { userId: user.id, schoolId },
+      });
+      if (!schoolAdmin) {
+        throw new NotFoundException('School not found');
+      }
+    }
+
+    const enquiries = await this.prisma.enquiry.findMany({
+      where: { schoolId },
+      orderBy: { sentAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    return {
+      data: enquiries,
+      total: enquiries.length,
+    };
   }
 
-  const enquiries = await this.prisma.enquiry.findMany({
-    where: { schoolId },
-  });
+  async replyToEnquiry(id: string, user: any) {
+    const enquiry = await this.prisma.enquiry.findUnique({
+      where: { id },
+      include: { school: true },
+    });
 
+    if (!enquiry) {
+      throw new NotFoundException('Enquiry not found');
+    }
 
-  return {
-    data: enquiries,
-    total: enquiries.length,
-  };
-}
+    if (user.role === Role.SCHOOL_ADMIN) {
+      const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+        where: { userId: user.id, schoolId: enquiry.schoolId },
+      });
+      if (!schoolAdmin) {
+        throw new NotFoundException('Enquiry not found');
+      }
+    }
+
+    const updated = await this.prisma.enquiry.update({
+      where: { id },
+      data: { status: 'REPLIED' },
+    });
+
+    return {
+      message: 'Enquiry marked as replied',
+      enquiry: updated,
+    };
+  }
 
   async findAll() {
     const enquiries = await this.prisma.enquiry.findMany({
       include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+          select: { id: true, name: true, email: true },
         },
         school: {
-          select: {
-            id: true,
-            name: true,
-            district: true,
-          },
+          select: { id: true, name: true, district: true },
         },
       },
       orderBy: { sentAt: 'desc' },
     });
-     
 
     return {
       data: enquiries,

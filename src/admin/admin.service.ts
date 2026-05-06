@@ -182,4 +182,23 @@ export class AdminService {
       schoolAdmin,
     };
   }
+
+  async getAllReviews() {
+    const reviews = await this.prisma.review.findMany({
+      include: {
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+        school: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      data: reviews,
+      total: reviews.length,
+    };
+  }
 }

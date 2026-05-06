@@ -17,6 +17,7 @@ import { EnquiriesModule } from './enquiries/enquiries.module';
 import { AdminModule } from './admin/admin.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
 import { SearchModule } from './search/search.module';
+import { SchoolAdminModule } from './school-admin/school-admin.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -50,6 +51,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     AdminModule,
     RecommendationsModule,
     SearchModule,
+    SchoolAdminModule,
   ],
   providers: [
     {

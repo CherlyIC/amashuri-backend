@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Body,
   Param,
   Request,
@@ -39,7 +40,14 @@ export class EnquiriesController {
   // GET /enquiries/school/:schoolId — school admin or admin
   @Get('school/:schoolId')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
-  findBySchool(@Param('schoolId') schoolId: string) {
-    return this.enquiriesService.findBySchool(schoolId);
+  findBySchool(@Param('schoolId') schoolId: string, @Request() req: any) {
+    return this.enquiriesService.findBySchool(schoolId, req.user);
+  }
+
+  // PUT /enquiries/:id/reply — school admin or admin
+  @Put(':id/reply')
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  replyToEnquiry(@Param('id') id: string, @Request() req: any) {
+    return this.enquiriesService.replyToEnquiry(id, req.user);
   }
 }
