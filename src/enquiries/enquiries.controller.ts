@@ -45,6 +45,13 @@ export class EnquiriesController {
     return this.enquiriesService.findBySchool(schoolId, req.user);
   }
 
+  // GET /enquiries/school/:schoolId/sent — school admin or admin
+  @Get('school/:schoolId/sent')
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  findSentBySchool(@Param('schoolId') schoolId: string, @Request() req: any) {
+    return this.enquiriesService.findSentBySchool(schoolId, req.user);
+  }
+
   // PUT /enquiries/:id/reply — school admin or admin
   @Put(':id/reply')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)

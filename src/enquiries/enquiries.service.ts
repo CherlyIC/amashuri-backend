@@ -271,4 +271,55 @@ export class EnquiriesService {
       message: 'Email sent successfully',
     };
   }
+
+  async findSentBySchool(schoolId: string, user?: any) {
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
+
+    if (!school) {
+      throw new NotFoundException('School not found');
+    }
+
+    if (user && user.role === Role.SCHOOL_ADMIN) {
+      const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+        where: { userId: user.id, schoolId },
+      });
+      if (!schoolAdmin) {
+        throw new NotFoundException('School not found');
+      }
+    }
+
+    // Get enquiries sent by the school (where userId is a school admin of this school)
+    const schoolAdmins = await this.prisma.schoolAdmin.findMany({
+      where: { schoolId },
+      select: { userId: true },
+    });
+
+    const adminUserIds = schoolAdmins.map((admin) => admin.userId);
+
+    const enquiries = await this.prisma.enquiry.findMany({
+      where: {
+        schoolId,
+        userId: { in: adminUserIds },
+      },
+      orderBy: { sentAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    // Add isSent flag
+    const enquiriesWithFlag = enquiries.map((enquiry) => ({
+      ...enquiry,
+      isSent: true,
+    }));
+
+    return {
+      data: enquiriesWithFlag,
+      total: enquiriesWithFlag.length,
+    };
+  }
 }
