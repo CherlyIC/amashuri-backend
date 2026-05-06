@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { EnquiriesService } from './enquiries.service';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
+import { SchoolSendEnquiryDto } from './dto/school-send-enquiry.dto';
 import { Roles, Role } from '../auth/roles.decorator';
 
 @Controller('enquiries')
@@ -49,5 +50,18 @@ export class EnquiriesController {
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   replyToEnquiry(@Param('id') id: string, @Request() req: any) {
     return this.enquiriesService.replyToEnquiry(id, req.user);
+  }
+
+  // POST /enquiries/school-send — school admin only
+  @Post('school-send')
+  @Roles(Role.SCHOOL_ADMIN)
+  schoolSend(@Body() schoolSendDto: SchoolSendEnquiryDto, @Request() req: any) {
+    return this.enquiriesService.schoolSend(
+      req.user,
+      schoolSendDto.recipientEmail,
+      schoolSendDto.subject,
+      schoolSendDto.message,
+      schoolSendDto.saveToDb,
+    );
   }
 }

@@ -205,4 +205,70 @@ export class EnquiriesService {
       total: enquiries.length,
     };
   }
+
+  async schoolSend(user: any, recipientEmail: string, subject: string, message: string, saveToDb?: boolean) {
+    // Get the school admin's school
+    const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+      where: { userId: user.id },
+      include: { school: true },
+    });
+
+    if (!schoolAdmin) {
+      throw new NotFoundException('School admin record not found');
+    }
+
+    const school = schoolAdmin.school;
+
+    // Send email from school to recipient
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `"${school.name}" <${process.env.SMTP_USER}>`,
+        to: recipientEmail,
+        replyTo: school.email || process.env.SMTP_USER,
+        subject: subject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin:0 auto;">
+            <div style="background-color: #1F4E79; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">${school.name}</h1>
+              <p style="color: #D6E4F0; margin: 5px 0;">Rwanda's Secondary School Directory</p>
+            </div>
+            <div style="padding: 30px; background-color: #f9f9f9;">
+              <p>${message}</p>
+              <hr style="border: 1px solid #eee; margin: 20px 0;"/>
+              <p style="color: #888; font-size: 12px;">This email was sent from ${school.name} through Amashuri.rw — Rwanda's Secondary School Directory.</p>
+            </div>
+          </div>
+        `,
+      });
+    } catch (error) {
+      console.error('School email sending failed:', error);
+      throw new Error('Failed to send email');
+    }
+
+    // Optionally save to database
+    if (saveToDb) {
+      await this.prisma.enquiry.create({
+        data: {
+          userId: user.id,
+          schoolId: school.id,
+          message: `To: ${recipientEmail}\nSubject: ${subject}\n\n${message}`,
+          senderEmail: school.email || process.env.SMTP_USER!,
+          status: 'REPLIED',
+        },
+      });
+    }
+
+    return {
+      message: 'Email sent successfully',
+    };
+  }
 }
