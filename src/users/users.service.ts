@@ -60,6 +60,32 @@ export class UsersService {
   }
 
   // Update user profile
+  async updatePassword(id: string, passwordHash: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash, resetToken: null, resetTokenExpiry: null },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+  }
+
+  async saveResetToken(id: string, token: string, expiry: Date) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { resetToken: token, resetTokenExpiry: expiry },
+    });
+  }
+
+  async findByResetToken(token: string) {
+    return this.prisma.user.findFirst({
+      where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
+    });
+  }
+
   async updateProfile(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 

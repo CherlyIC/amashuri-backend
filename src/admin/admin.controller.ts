@@ -63,4 +63,10 @@ export class AdminController {
   assignSchoolAdmin(@Body() assignAdminDto: AssignAdminDto) {
     return this.adminService.assignSchoolAdmin(assignAdminDto);
   }
+
+  // GET /admin/reviews — admin only
+  @Get('reviews')
+  getAllReviews() {
+    return this.adminService.getAllReviews();
+  }
 }

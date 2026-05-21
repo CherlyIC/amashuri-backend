@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFeeDto } from './dto/create-fee.dto';
+import { Role } from '../auth/roles.decorator';
 
 @Injectable()
 export class FeesService {
@@ -70,11 +71,24 @@ export class FeesService {
     };
   }
 
-  async remove(id: string) {
-    const fee = await this.prisma.fee.findUnique({ where: { id } });
+  async remove(id: string, userId?: string, userRole?: string) {
+    const fee = await this.prisma.fee.findUnique({
+      where: { id },
+      include: { school: true },
+    });
 
     if (!fee) {
       throw new NotFoundException('Fee record not found');
+    }
+
+    // If userId is provided and user is not ADMIN, verify ownership
+    if (userId && userRole !== Role.ADMIN) {
+      const schoolAdmin = await this.prisma.schoolAdmin.findFirst({
+        where: { userId, schoolId: fee.schoolId },
+      });
+      if (!schoolAdmin) {
+        throw new NotFoundException('Fee record not found');
+      }
     }
 
     await this.prisma.fee.delete({ where: { id } });

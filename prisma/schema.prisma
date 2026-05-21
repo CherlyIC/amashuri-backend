@@ -44,17 +44,19 @@ enum SchoolStatus {
 }
 
 model User {
-  id           String      @id @default(uuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
+  id               String      @id @default(uuid())
+  name             String
+  email            String   @unique
+  passwordHash     String
+  role             Role     @default(USER)
+  createdAt        DateTime @default(now())
+  resetToken       String?  @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
 
   reviews      Review[]
   favourites   Favourite[]
-  enquiries    Enquiry[]
   comparisons  Comparison[]
+  enquiries    Enquiry[]
   schoolAdmin  SchoolAdmin?
 }
 
@@ -146,16 +148,19 @@ model Favourite {
 }
 
 model Enquiry {
-  id          String           @id @default(uuid())
-  userId      String
-  schoolId    String
-  message     String
-  senderEmail String
-  sentAt      DateTime      @default(now())
-  status      EnquiryStatus @default(SENT)
+  id             String           @id @default(uuid())
+  userId         String
+  schoolId       String
+  message        String
+  senderEmail    String
+  sentAt         DateTime      @default(now())
+  status         EnquiryStatus @default(SENT)
+  attachmentUrl  String?
+  replyMessage   String?
+  repliedAt      DateTime?
 
-  user        User          @relation(fields: [userId], references: [id])
-  school      School        @relation(fields: [schoolId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+  school         School        @relation(fields: [schoolId], references: [id])
 }
 
 model Comparison {

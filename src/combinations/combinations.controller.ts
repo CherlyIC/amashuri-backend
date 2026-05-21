@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Request,
 } from '@nestjs/common';
 import { CombinationsService } from './combinations.service';
 import { CreateCombinationDto } from './dto/create-combination.dto';
@@ -33,10 +34,10 @@ export class CombinationsController {
     return this.combinationsService.findBySchool(schoolId);
   }
 
-  // DELETE /combinations/:id — admin only
+  // DELETE /combinations/:id — admin or school admin
   @Delete('combinations/:id')
-  @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.combinationsService.remove(id);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.combinationsService.remove(id, req.user.id, req.user.role);
   }
 }

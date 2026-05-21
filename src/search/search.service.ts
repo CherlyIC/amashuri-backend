@@ -58,9 +58,10 @@ export class SearchService {
 Your job is to analyze the user's query and return a single JSON object with these fields:
 
 1. "intent" — classify the query as one of:
-   - "search": user wants to find schools using specific filters
-   - "recommendation": user wants best/top schools without specific filters
-   - "general_education": user has a question about Rwanda's education system but is NOT looking for a specific school
+   - "search": user wants to find schools in the Amashuri.rw database using specific filters (e.g. boarding, district, gender, fees, combination)
+   - "recommendation": user is asking the Amashuri.rw platform to show its top-rated schools from its database (e.g. "show me your best schools", "recommend schools on your platform")
+   - "general_education": user asks a general knowledge question about Rwanda's education system or about specific school names/rankings/best schools in Rwanda — this is for ANY query where the user expects factual knowledge, NOT a database lookup. Also use this when the user asks for suggestions/advice/recommendations about schools with criteria like budget, location, etc. (e.g. "suggest a good school with budget 300000", "recommend a school in Kigali for my child", "I need a good secondary school for 500000 RWF"). Examples: "best schools in Rwanda", "top 10 secondary schools", "which school has the best science program", "name good schools in Kigali", "provide me the 2 best schools in Rwanda", "what are the best schools in the country", "I am a parent looking for a good school with budget 300000"
+
    - "out_of_scope": query has nothing to do with schools or education in Rwanda
 
 2. "params" — ONLY if intent is "search", extract these filters (all optional):
@@ -84,7 +85,7 @@ Your job is to analyze the user's query and return a single JSON object with the
    - For "general_education": answer the education question directly here in 3 sentences max. At the end suggest searching on Amashuri.rw if relevant.
    - For "out_of_scope": politely say you can only help with secondary schools in Rwanda and give an example query.
 
-4. "generalAnswer" — ONLY if intent is "general_education", provide a detailed helpful answer about Rwanda's education system. Otherwise set to null.
+4. "generalAnswer" — ONLY if intent is "general_education", provide a detailed helpful answer. If the user asks about specific school names, rankings, or "best schools", use your general knowledge to name well-known Rwandan secondary schools (e.g. Green Hills Academy, FAWE Girls School, Lycée de Kigali, École Belge, Gashora Girls Academy, etc.). Otherwise set to null.
 
 Return ONLY a raw JSON object. No explanation, no markdown, no backticks.`,
         },
@@ -119,10 +120,40 @@ Return ONLY a raw JSON object. No explanation, no markdown, no backticks.`,
     total: number,
     schools: any[],
   ): Promise<string> {
+    if (total === 0) {
+      const completion = await this.groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a friendly assistant for Amashuri.rw, Rwanda's secondary school finder.
+
+No schools in the Amashuri.rw database matched the user's search criteria.
+
+Use your general knowledge of Rwandan secondary schools to give helpful advice.
+- Suggest well-known schools that might fit what they described
+- Mention approximate fee ranges if you know them (e.g. public schools are often affordable, private schools vary)
+- Suggest they search on Amashuri.rw for more specific options
+- Be warm and helpful
+- Maximum 4 sentences.`,
+          },
+          {
+            role: 'user',
+            content: `The user asked: "${query}"
+
+No schools in the database matched. Give helpful general advice based on your knowledge.`,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 200,
+      });
+
+      return completion.choices[0]?.message?.content?.trim() ||
+        'No schools in our database matched your criteria. Try adjusting your filters or searching with different keywords.';
+    }
+
     const schoolNames = schools.slice(0, 3).map((s) => s.name).join(', ');
-    const context = total === 0
-      ? 'No schools were found matching the search criteria.'
-      : `Found ${total} school(s): ${schoolNames}${total > 3 ? ` and ${total - 3} more` : ''}.`;
+    const context = `Found ${total} school(s): ${schoolNames}${total > 3 ? ` and ${total - 3} more` : ''}.`;
 
     const completion = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -131,8 +162,7 @@ Return ONLY a raw JSON object. No explanation, no markdown, no backticks.`,
           role: 'system',
           content: `You are a friendly assistant for Amashuri.rw, Rwanda's secondary school finder.
 Respond in maximum 2 sentences.
-If no schools found, explain why and suggest relaxing one filter.
-If schools found, confirm results in a warm friendly way.
+Confirm results in a warm friendly way.
 Never list school names. No bullet points. Natural friendly text only.`,
         },
         {
@@ -147,9 +177,7 @@ Write a short friendly response.`,
     });
 
     return completion.choices[0]?.message?.content?.trim() ||
-      (total === 0
-        ? 'No schools matched your search. Try adjusting your filters.'
-        : `Found ${total} school(s) matching your search.`);
+      `Found ${total} school(s) matching your search.`;
   }
 
   

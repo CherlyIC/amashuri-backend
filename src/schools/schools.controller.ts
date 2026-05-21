@@ -20,11 +20,11 @@ import { Public } from '../auth/public.decorator';
 export class SchoolsController {
   constructor(private schoolsService: SchoolsService) {}
 
-  // POST /schools — admin only
+  // POST /schools — admin or school admin (school admin auto-assigned to created school)
   @Post()
-  @Roles(Role.ADMIN)
-  create(@Body() createSchoolDto: CreateSchoolDto) {
-    return this.schoolsService.create(createSchoolDto);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  create(@Body() createSchoolDto: CreateSchoolDto, @Request() req: any) {
+    return this.schoolsService.create(createSchoolDto, req.user);
   }
 
   // GET /schools — public, with filters and pagination
@@ -56,14 +56,15 @@ export class SchoolsController {
     return this.schoolsService.findOne(id);
   }
 
-  // PUT /schools/:id — admin or school admin
+  // PUT /schools/:id — admin or school admin (school admin only own school)
   @Put(':id')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateSchoolDto: UpdateSchoolDto,
+    @Request() req: any,
   ) {
-    return this.schoolsService.update(id, updateSchoolDto);
+    return this.schoolsService.update(id, updateSchoolDto, req.user.id, req.user.role);
   }
 
   // DELETE /schools/:id — admin only
@@ -73,10 +74,10 @@ export class SchoolsController {
     return this.schoolsService.remove(id);
   }
 
-  // PUT /schools/:id/submit — school admin
+  // PUT /schools/:id/submit — admin or school admin (school admin only own school)
   @Put(':id/submit')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
-  submitForVerification(@Param('id') id: string) {
-    return this.schoolsService.submitForVerification(id);
+  submitForVerification(@Param('id') id: string, @Request() req: any) {
+    return this.schoolsService.submitForVerification(id, req.user.id, req.user.role);
   }
 }

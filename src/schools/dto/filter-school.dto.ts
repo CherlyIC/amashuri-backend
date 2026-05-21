@@ -38,6 +38,10 @@ export class FilterSchoolDto {
   @Type(() => Number)
   maxFee?: number;
 
+  @IsString()
+  @IsOptional()
+  combination?: string;
+
   @IsNumber()
   @IsOptional()
   @Type(() => Number)

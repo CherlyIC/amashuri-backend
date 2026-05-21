@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Request,
 } from '@nestjs/common';
 import { FeesService } from './fees.service';
 import { CreateFeeDto } from './dto/create-fee.dto';
@@ -42,8 +43,8 @@ export class FeesController {
   }
 
   @Delete('fee/:id')
-  @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.feesService.remove(id);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.feesService.remove(id, req.user.id, req.user.role);
   }
 }
