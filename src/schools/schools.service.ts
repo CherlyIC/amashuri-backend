@@ -52,6 +52,9 @@ export class SchoolsService {
       schoolType,
       genderPolicy,
       boarding,
+      minFee,
+      maxFee,
+      combination,
       page = 1,
       limit = 10,
     } = filterDto;
@@ -76,6 +79,19 @@ export class SchoolsService {
     if (schoolType) where.schoolType = schoolType;
     if (genderPolicy) where.genderPolicy = genderPolicy;
     if (boarding !== undefined) where.boarding = boarding;
+
+    if (minFee || maxFee) {
+      const amountFilter: any = {};
+      if (minFee) amountFilter.gte = minFee;
+      if (maxFee) amountFilter.lte = maxFee;
+      where.fees = { some: { amount: amountFilter } };
+    }
+
+    if (combination) {
+      where.combinations = {
+        some: { name: { contains: combination, mode: 'insensitive' } },
+      };
+    }
 
     const [schools, total] = await Promise.all([
       this.prisma.school.findMany({

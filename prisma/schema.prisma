@@ -148,16 +148,19 @@ model Favourite {
 }
 
 model Enquiry {
-  id          String           @id @default(uuid())
-  userId      String
-  schoolId    String
-  message     String
-  senderEmail String
-  sentAt      DateTime      @default(now())
-  status      EnquiryStatus @default(SENT)
+  id             String           @id @default(uuid())
+  userId         String
+  schoolId       String
+  message        String
+  senderEmail    String
+  sentAt         DateTime      @default(now())
+  status         EnquiryStatus @default(SENT)
+  attachmentUrl  String?
+  replyMessage   String?
+  repliedAt      DateTime?
 
-  user        User          @relation(fields: [userId], references: [id])
-  school      School        @relation(fields: [schoolId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+  school         School        @relation(fields: [schoolId], references: [id])
 }
 
 model Comparison {
