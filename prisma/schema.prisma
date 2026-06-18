@@ -52,12 +52,18 @@ model User {
   createdAt        DateTime @default(now())
   resetToken       String?  @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
+  tokenVersion     Int      @default(0) @map("token_version")
+  totpEnabled      Boolean  @default(false) @map("totp_enabled")
+  otpHash          String?  @map("otp_hash")
+  otpExpiry        DateTime? @map("otp_expiry")
 
-  reviews      Review[]
-  favourites   Favourite[]
-  comparisons  Comparison[]
-  enquiries    Enquiry[]
-  schoolAdmin  SchoolAdmin?
+  reviews       Review[]
+  favourites    Favourite[]
+  comparisons   Comparison[]
+  enquiries     Enquiry[]
+  schoolAdmin   SchoolAdmin?
+  chatSessions  ChatSession[]
+  notifications Notification[]
 }
 
 model School {
@@ -97,16 +103,20 @@ model Fee {
   amount       Float
   academicYear String
 
-  school       School      @relation(fields: [schoolId], references: [id])
+  school       School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
 }
 
 model Combination {
   id       String    @id @default(uuid())
-  schoolId String  
+  schoolId String
   name     String
   subjects String
 
-  school   School @relation(fields: [schoolId], references: [id])
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
 }
 
 model SchoolResource {
@@ -119,7 +129,7 @@ model SchoolResource {
   boardingHouse Boolean @default(false)
   chapel       Boolean @default(false)
 
-  school       School  @relation(fields: [schoolId], references: [id])
+  school       School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 }
 
 model Review {
@@ -133,8 +143,11 @@ model Review {
   comment          String?
   createdAt        DateTime @default(now())
 
-  school           School   @relation(fields: [schoolId], references: [id])
-  user             User     @relation(fields: [userId], references: [id])
+  school           School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, schoolId])
+  @@index([schoolId])
 }
 
 model Favourite {
@@ -143,8 +156,11 @@ model Favourite {
   schoolId String
   savedAt  DateTime @default(now())
 
-  user     User     @relation(fields: [userId], references: [id])
-  school   School   @relation(fields: [schoolId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school   School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, schoolId])
+  @@index([userId])
 }
 
 model Enquiry {
@@ -159,8 +175,11 @@ model Enquiry {
   replyMessage   String?
   repliedAt      DateTime?
 
-  user           User          @relation(fields: [userId], references: [id])
-  school         School        @relation(fields: [schoolId], references: [id])
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school         School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([schoolId])
 }
 
 model Comparison {
@@ -169,7 +188,9 @@ model Comparison {
   schoolIds Json
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model SchoolAdmin {
@@ -178,6 +199,43 @@ model SchoolAdmin {
   schoolId   String      @unique
   assignedAt DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id])
-  school     School   @relation(fields: [schoolId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  userId    String
+  title     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  sessionId String
+  role      String
+  content   String
+  schools   Json?
+  createdAt DateTime    @default(now())
+
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
