@@ -4,11 +4,15 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   // Create a review
  async create(userId: string, createReviewDto: CreateReviewDto) {
@@ -155,18 +159,31 @@ export class ReviewsService {
 
   // Delete a review
   async remove(id: string, userId: string, userRole: string) {
-    const review = await this.prisma.review.findUnique({ where: { id } });
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+      include: { school: { select: { name: true } } },
+    });
 
     if (!review) {
       throw new NotFoundException('Review not found');
     }
 
-    // Allow admin to delete any review, users can only delete their own
     if (userRole !== 'ADMIN' && review.userId !== userId) {
       throw new ForbiddenException('You can only delete your own reviews');
     }
 
     await this.prisma.review.delete({ where: { id } });
+
+    // Notify the review owner only when an admin removes it
+    if (userRole === 'ADMIN' && review.userId !== userId) {
+      await this.notifications.create(
+        review.userId,
+        'REVIEW_DELETED',
+        'Your Review Was Removed',
+        `Your review for ${review.school.name} was removed by an administrator`,
+        '/my-reviews',
+      );
+    }
 
     return {
       message: 'Review deleted successfully',
