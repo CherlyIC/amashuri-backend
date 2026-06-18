@@ -14,7 +14,7 @@ import { IsString } from 'class-validator';
 
 export class ChangeRoleDto {
   @IsString()
-  role: string;
+  role!: string;
 }
 
 @Controller('admin')
@@ -64,9 +64,20 @@ export class AdminController {
     return this.adminService.assignSchoolAdmin(assignAdminDto);
   }
 
-  // GET /admin/reviews — admin only
+  // GET /admin/reviews
   @Get('reviews')
   getAllReviews() {
     return this.adminService.getAllReviews();
+  }
+
+  // GET /admin/reports?from=2026-02-01&to=2026-02-28
+  @Get('reports')
+  getReports(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const fromDate = from ? new Date(from) : undefined;
+    const toDate   = to   ? new Date(to + 'T23:59:59') : undefined;
+    return this.adminService.getReports(fromDate, toDate);
   }
 }
