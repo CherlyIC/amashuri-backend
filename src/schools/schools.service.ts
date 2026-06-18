@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { FilterSchoolDto } from './dto/filter-school.dto';
@@ -7,7 +8,10 @@ import { Role } from '../auth/roles.decorator';
 
 @Injectable()
 export class SchoolsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async create(createSchoolDto: CreateSchoolDto, user?: any) {
     // If user is SCHOOL_ADMIN, check they don't already have a school
@@ -255,6 +259,23 @@ export class SchoolsService {
       where: { id },
       data: { status: 'PENDING' },
     });
+
+    // Notify all super admins
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+    await Promise.all(
+      admins.map((admin) =>
+        this.notifications.create(
+          admin.id,
+          'SCHOOL_SUBMITTED',
+          'New School Awaiting Review',
+          `${school.name} has been submitted for verification`,
+          '/admin/schools/pending',
+        ),
+      ),
+    );
 
     return {
       message: 'School submitted for verification successfully',
