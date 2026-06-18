@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 import { Role } from '../auth/roles.decorator';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EnquiriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   private async sendEmail(
     to: string,
@@ -98,6 +102,20 @@ export class EnquiriesService {
         } catch (error) {
           console.error('Email sending failed:', error);
         }
+      }
+
+      // Notify the school admin in-app
+      const schoolAdmin = await this.prisma.schoolAdmin.findUnique({
+        where: { schoolId: school.id },
+      });
+      if (schoolAdmin) {
+        await this.notifications.create(
+          schoolAdmin.userId,
+          'NEW_ENQUIRY',
+          'New Enquiry Received',
+          `${user.name} sent an enquiry to ${school.name}`,
+          '/enquiries',
+        );
       }
 
       return {
@@ -301,6 +319,15 @@ export class EnquiriesService {
     } catch (error) {
       console.error('Reply email sending failed:', error);
     }
+
+    // Notify the user who sent the enquiry
+    await this.notifications.create(
+      enquiry.userId,
+      'ENQUIRY_REPLY',
+      'Your Enquiry Got a Reply',
+      `${enquiry.school?.name || 'A school'} replied to your enquiry`,
+      '/my-enquiries',
+    );
 
     return {
       message: 'Enquiry replied successfully',
