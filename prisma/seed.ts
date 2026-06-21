@@ -25,8 +25,8 @@ async function main() {
     console.log('Admin already exists!');
   }
 
-  //  SCHOOLS 
- const schools = [
+  //  SCHOOLS
+  const schools = [
   // ─── KIGALI PROVINCE ───────────────────────────────────────────
   {
     name: 'Groupe Scolaire Officiel de Butare',
